@@ -2,7 +2,7 @@
 Header = require './header'
 fs = require 'fs'
 iconv = require 'iconv-lite'
-
+iconv.skipDecodeWarning = true
 class Parser extends EventEmitter
 
     constructor: (@filename, @encoding = 'utf-8') ->
