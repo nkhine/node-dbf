@@ -1,10 +1,12 @@
 {EventEmitter} = require 'events'
 Header = require './header'
 fs = require 'fs'
+iconv = require 'iconv-lite'
+iconv.skipDecodeWarning = true
 
 class Parser extends EventEmitter
 
-    constructor: (@filename) ->
+    constructor: (@filename, @encoding = 'utf-8') ->
 
     parse: =>
         @emit 'start', @
@@ -81,10 +83,8 @@ class Parser extends EventEmitter
         return record
 
     parseField: (field, buffer) =>
-        value = (buffer.toString 'utf-8').replace /^\x20+|\x20+$/g, ''
-
+        value = (iconv.decode buffer, @encoding).trim()
         #if field.type is 'N' then value = parseInt value, 10
-
         return value
 
 module.exports = Parser
