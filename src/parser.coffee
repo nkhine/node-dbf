@@ -17,57 +17,17 @@ class Parser extends EventEmitter
             @emit 'header', @header
 
             sequenceNumber = 0
-            
-            loc = @header.start
-            bufLoc = @header.start
-            overflow = null
-            @paused = false
-            
-            stream = fs.createReadStream @filename
-            
-            @readBuf = =>
-            
-                if @paused
-                
-                    @emit 'paused'
-                    
-                    return
-                
-                while buffer = stream.read()
-                    
-                    if bufLoc isnt @header.start then bufLoc = 0
-                    
-                    if overflow isnt null then buffer = overflow + buffer
-                    
-                    while loc < (@header.start + @header.numberOfRecords * @header.recordLength) && (bufLoc + @header.recordLength) <= buffer.length
-                        
-                        @emit 'record', @parseRecord ++sequenceNumber, buffer.slice bufLoc, bufLoc += @header.recordLength
-                        
-                    loc += bufLoc
-                    
-                    if bufLoc < buffer.length then overflow = buffer.slice bufLoc, buffer.length else overflow = null
-                    
-                    return @
-                    
-            stream.on 'readable',@readBuf
-            
-            stream.on 'end', () =>
-            
-                @emit 'end'
+
+            fs.readFile @filename, (err, buffer) =>
+                throw err if err
+
+                loc = @header.start
+                while loc < (@header.start + @header.numberOfRecords * @header.recordLength) and loc < buffer.length
+                    @emit 'record', @parseRecord ++sequenceNumber, buffer.slice loc, loc += @header.recordLength
+
+                @emit 'end', @
 
         return @
-        
-    pause: =>
-        
-        @paused = true
-        
-    resume: =>
-    
-        @paused = false
-        
-        @emit 'resuming'
-        
-        do @readBuf
 
     parseRecord: (sequenceNumber, buffer) =>
         record = {
