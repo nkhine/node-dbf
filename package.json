@@ -20,5 +20,8 @@
   },
   "scripts": {
     "prepublish": "cake build"
+  },
+  "dependencies": {
+    "iconv-lite": "~0.2.11"
   }
 }

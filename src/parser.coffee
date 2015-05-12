@@ -6,7 +6,7 @@ iconv.skipDecodeWarning = true
 
 class Parser extends EventEmitter
 
-    constructor: (@filename, @encoding = 'utf-8') ->
+    constructor: (@filename, @encoding) ->
 
     parse: =>
         @emit 'start', @
@@ -43,8 +43,13 @@ class Parser extends EventEmitter
         return record
 
     parseField: (field, buffer) =>
-        value = (iconv.decode buffer, @encoding).trim()
-        #if field.type is 'N' then value = parseInt value, 10
+        encoding = 'utf-8'
+        encoding = @encoding if @encoding
+
+        value = iconv.decode(buffer, encoding).replace /^\x20+|\x20+$/g, ''
+
+        if field.type is 'N' then value = parseInt value, 10
+
         return value
 
 module.exports = Parser
