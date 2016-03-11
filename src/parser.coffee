@@ -45,7 +45,7 @@ class Parser extends EventEmitter
     parseField: (field, buffer) =>
         value = (iconv.decode buffer, @encoding).trim()
 
-        #if field.type is 'N' then value = parseInt value, 10
+        if field.type is 'N' then value = parseFloat value
 
         return value
 
