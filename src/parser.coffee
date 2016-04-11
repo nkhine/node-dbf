@@ -1,8 +1,10 @@
 {EventEmitter} = require 'events'
 Header = require './header'
 fs = require 'fs'
+
 iconv = require 'iconv-lite'
 iconv.skipDecodeWarning = true
+stream = require 'stream'
 
 class Parser extends EventEmitter
 
@@ -11,24 +13,40 @@ class Parser extends EventEmitter
     parse: =>
         @emit 'start', @
 
-        @header = new Header @filename
-        @header.parse (err) =>
+        if @filename instanceof stream.Stream
+            stream = @filename
+        else
+            stream = fs.createReadStream @filename
 
+        stream.once 'end', () =>
+            @emit 'end'
+
+        @header = new Header stream
+        @header.parse (err) =>
             @emit 'header', @header
 
             sequenceNumber = 0
+            
+            @readBuf = =>
+                if @paused
 
-            fs.readFile @filename, (err, buffer) =>
-                throw err if err
+                    @emit 'paused'
+                    
+                    return
+                while !@done and (buffer = stream.read @header.recordLength)
+                    if buffer[0] == 0x1A
+                        @done = true
+                    else if buffer.length == @header.recordLength
+                        @emit 'record', @parseRecord ++sequenceNumber, buffer
 
-                loc = @header.start
-                while loc < (@header.start + @header.numberOfRecords * @header.recordLength) and loc < buffer.length
-                    @emit 'record', @parseRecord ++sequenceNumber, buffer.slice loc, loc += @header.recordLength
+            stream.on 'readable',@readBuf
 
-                @emit 'end', @
+            do @readBuf
+
+            return @
 
         return @
-
+    
     parseRecord: (sequenceNumber, buffer) =>
         record = {
             '@sequenceNumber': sequenceNumber
@@ -48,5 +66,17 @@ class Parser extends EventEmitter
         if field.type is 'N' then value = parseFloat value
 
         return value
+
+     pause: =>
+        
+        @paused = true
+        
+    resume: =>
+    
+        @paused = false
+
+        @emit 'resuming'
+        
+        do @readBuf
 
 module.exports = Parser

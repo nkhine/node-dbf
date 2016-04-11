@@ -5,11 +5,11 @@ This is an event-based dBase file parser for very efficiently reading data from 
 
 To get started, simply install the module using npm:
 
-    npm install node-dbf
+    npm install node-dbf-carevoyance
 
 and then `require` it:
 
-    var Parser = require('node-dbf');
+    var Parser = require('node-dbf-carevoyance');
 
 #Classes
 
@@ -21,11 +21,11 @@ This class is the main interface for reading data from dBase files. It extends `
 
 ###new Parser(path)
 
-* path `String` The full path to the .dbf file to parse
+* path -- If a `string`, the full path to the .dbf file to parse. If a `ReadableStream`, a stream containing the DBF data.
 
 Creates a new Parser and attaches it to the specified filename.
 
-    var Parser = require('node-dbf');
+    var Parser = require('node-dbf-carevoyance');
     
     var parser = new Parser('/path/to/my/dbase/file.dbf');
 
@@ -88,7 +88,7 @@ This event is fired once the dBase parsing is complete and there are no more rec
 
 The following code example illustrates a very simple usage for this module:
 
-    var Parser = require('node-dbf');
+    var Parser = require('node-dbf-carevoyance');
     
     var parser = new Parser('/path/to/my/dbase/file.dbf');
     
@@ -114,4 +114,3 @@ The following code example illustrates a very simple usage for this module:
 
 * Write some tests
 * Add support for field types other than Character and Numeric
-* Use `fs.readStream` instead of `fs.readFile` for increased performance
